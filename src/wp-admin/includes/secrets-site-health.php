@@ -10,9 +10,8 @@
 /**
  * Registers the Secrets API's Site Health tests.
  *
- * No settings screen – the proposal defers that to 7.3 – but the health signal an
- * operator needs to notice a broken key, a weak key source, or a pending rotation is
- * in scope now.
+ * There is no settings screen for secrets, so these tests are how an operator
+ * notices a broken key, a weak key source, or a pending rotation.
  *
  * @since 7.2.0
  *
@@ -67,14 +66,14 @@ function wp_secrets_site_health_result( string $test, string $label, string $sta
 		'status'      => $status,
 		'badge'       => array(
 			'label' => __( 'Security' ),
-			'color' => isset( $colors[ $status ] ) ? $colors[ $status ] : 'blue',
+			'color' => $colors[ $status ] ?? 'blue',
 		),
 		'description' => $description,
 	);
 }
 
 /**
- * Site Health test: is the site key a dedicated constant, or a weaker fallback?
+ * Tests whether the site key comes from a dedicated constant or a weaker fallback.
  *
  * @since 7.2.0
  *
@@ -85,7 +84,7 @@ function wp_secrets_site_health_result( string $test, string $label, string $sta
 function wp_secrets_site_health_test_key_source(): array {
 	$key_source = _wp_secrets_get_key_manager()->get_keyring()->get_key_source();
 
-	if ( false !== strpos( $key_source, 'broken' ) ) {
+	if ( str_contains( $key_source, 'broken' ) ) {
 		return wp_secrets_site_health_result(
 			'secrets_api_key_source',
 			__( 'Secrets API key source is broken' ),
@@ -97,7 +96,7 @@ function wp_secrets_site_health_test_key_source(): array {
 		);
 	}
 
-	if ( false !== strpos( $key_source, 'legacy interpretation' ) ) {
+	if ( str_contains( $key_source, 'legacy interpretation' ) ) {
 		return wp_secrets_site_health_result(
 			'secrets_api_key_source',
 			__( 'Secrets API key should be regenerated' ),
@@ -109,7 +108,7 @@ function wp_secrets_site_health_test_key_source(): array {
 		);
 	}
 
-	if ( false !== strpos( $key_source, 'LOGGED_IN_KEY' ) ) {
+	if ( str_contains( $key_source, 'LOGGED_IN_KEY' ) ) {
 		return wp_secrets_site_health_result(
 			'secrets_api_key_source',
 			__( 'Secrets API is using a fallback key' ),
@@ -130,7 +129,7 @@ function wp_secrets_site_health_test_key_source(): array {
 }
 
 /**
- * Site Health test: does every stored secret still decrypt?
+ * Tests whether every stored secret still decrypts.
  *
  * Network secrets are included only for a super admin on a multisite install –
  * never shown to a site administrator who is not one.
@@ -218,7 +217,7 @@ function wp_secrets_site_health_find_undecryptable( bool $network ): array {
 }
 
 /**
- * Site Health test: are any secrets flagged as needing rotation?
+ * Tests whether any secrets are flagged as needing rotation.
  *
  * @since 7.2.0
  *
